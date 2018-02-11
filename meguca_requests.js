@@ -46,10 +46,10 @@
             "#refreshBtn { float: left; }\n" +
             ".reqBtn { height: 15px; background-color: darkgrey; border: none; cursor: pointer; }\n" +
             "#reqbottom { height: 4px; cursor: ns-resize; }\n" +
-            "#reqtable { width: 100%; }\n" +
+            "#reqtable { width: 100%; table-layout: fixed; }\n" +
             ".cbhead { width: 10%; }\n" +
             ".cbcell { width: 10%; text-align: center; }\n" +
-            "#rtext { wdith: 80%; }\n" +
+            "#rtext { width: 80%; }\n" +
             "#rthead { height: 5%; }";
 
         document.head.appendChild(css);
@@ -122,7 +122,13 @@
         reqa.innerText = "Show Requests Window";
         reqa.addEventListener("click", showRequestsWindow);
 
+        var reseta = document.createElement("a");
+        reseta.innerText = "Reset Window Position";
+        reseta.addEventListener("click", resetWindowPosition);
+
         reqCont.append(reqa);
+        reqCont.append(document.createElement("br"));
+        reqCont.append(reseta);
         tabCont.append(reqCont);
         tabButts.append(reqButt);
     }
@@ -131,7 +137,8 @@
     {
         reqhead.addEventListener("mousedown", reqheadMouseDown);
         window.addEventListener("mouseup", windowMouseUp);
-        html.addEventListener("mousemove", htmlMouseMove);
+        html.addEventListener("mousemove", moveRequestWindow);
+        window.addEventListener("resize", moveRequestWindow);
         refreshBtn.addEventListener("click", refreshRequestList);
         closeBtn.addEventListener("click", hideRequestsWindow);
     }
@@ -150,29 +157,36 @@
         body.style.userSelect = "";
     }
 
-    function htmlMouseMove(e)
+    function moveRequestWindow(e)
     {
-        if(reqhead.classList.contains("drag"))
+        if (e.type == "mousemove" && reqhead.classList.contains("drag"))
         {
-            var w = e.screenX - magicw,
-                h = e.screenY - magich,
-                reqw = window.innerWidth - reqdiv.offsetWidth,
-                reqh = window.innerHeight - reqdiv.offsetHeight;
+                var w = e.screenX - magicw,
+                    h = e.screenY - magich,
+                    reqw = window.innerWidth - reqdiv.offsetWidth,
+                    reqh = window.innerHeight - reqdiv.offsetHeight;
 
-            if (h > 0)
-                reqdiv.style.top = h + "px";
-            else
-                reqdiv.style.top = "0px";
+                if (h > 0)
+                    reqdiv.style.top = h + "px";
+                else
+                    reqdiv.style.top = "0px";
 
-            if (w > 0)
-                reqdiv.style.left = w + "px";
-            else
-                reqdiv.style.left = "0px";
+                if (w > 0)
+                    reqdiv.style.left = w + "px";
+                else
+                    reqdiv.style.left = "0px";
 
-            if (w > reqw)
-                reqdiv.style.left = reqw + "px";
-            if (h > reqh)
-                reqdiv.style.top = reqh + "px";
+                if (w > reqw)
+                    reqdiv.style.left = reqw + "px";
+                if (h > reqh)
+                    reqdiv.style.top = reqh + "px";
+        }
+        else if(e.type == "resize")
+        {
+            if (reqdiv.getBoundingClientRect().x + reqdiv.offsetWidth > window.innerWidth)
+                reqdiv.style.left = window.innerWidth - reqdiv.offsetWidth + "px";
+            if (reqdiv.getBoundingClientRect().y + reqdiv.offsetHeight > window.innerHeight)
+                reqdiv.style.top = window.innerHeight - reqdiv.offsetHeight + "px";
         }
     }
 
@@ -186,10 +200,17 @@
         reqdiv.style.display = "none";
     }
 
+    function resetWindowPosition()
+    {
+        reqdiv.style.top = "";
+        reqdiv.style.left = "";
+    }
+
     function refreshRequestList()
     {
         var posts = document.getElementsByTagName("article");
-        var re = new RegExp('/r/(.*)', 'i');
+        var reqRE = new RegExp('/r/(.*)', 'i');
+        var redditRE = new RegExp('reddit.com', 'i');
         var i = lastIndex;
 
         while (i < posts.length)
@@ -199,9 +220,9 @@
 
             for (var j = 0; j < lines.length; j++)
             {
-                var match = lines[j].match(re);
+                var match = lines[j].match(reqRE);
 
-                if(match)
+                if(match && lines[j].search(redditRE) < 0)
                     addRequest(match[1].trim(), posts[i].id);
             }
 
