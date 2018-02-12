@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Meguca Request Window
 // @namespace    KethRequest
-// @version      0.1
+// @version      0.2
 // @description  Show all requests that start with /r/
 // @author       Kethsar
 // @match        https://meguca.org/a/*
@@ -145,41 +145,41 @@
 
     function reqheadMouseDown(e)
     {
+        e.preventDefault();
         reqhead.classList.add("drag");
         magicw = e.screenX - reqdiv.getBoundingClientRect().x;
         magich = e.screenY - reqdiv.getBoundingClientRect().y;
-        body.style.userSelect = "none";
     }
 
     function windowMouseUp(e)
     {
         reqhead.classList.remove("drag");
-        body.style.userSelect = "";
     }
 
     function moveRequestWindow(e)
     {
         if (e.type == "mousemove" && reqhead.classList.contains("drag"))
         {
-                var w = e.screenX - magicw,
-                    h = e.screenY - magich,
-                    reqw = window.innerWidth - reqdiv.offsetWidth,
-                    reqh = window.innerHeight - reqdiv.offsetHeight;
+            e.preventDefault();
+            var w = e.screenX - magicw,
+                h = e.screenY - magich,
+                reqw = window.innerWidth - reqdiv.offsetWidth,
+                reqh = window.innerHeight - reqdiv.offsetHeight;
 
-                if (h > 0)
-                    reqdiv.style.top = h + "px";
-                else
-                    reqdiv.style.top = "0px";
+            if (h > 0)
+                reqdiv.style.top = h + "px";
+            else
+                reqdiv.style.top = "0px";
 
-                if (w > 0)
-                    reqdiv.style.left = w + "px";
-                else
-                    reqdiv.style.left = "0px";
+            if (w > 0)
+                reqdiv.style.left = w + "px";
+            else
+                reqdiv.style.left = "0px";
 
-                if (w > reqw)
-                    reqdiv.style.left = reqw + "px";
-                if (h > reqh)
-                    reqdiv.style.top = reqh + "px";
+            if (w > reqw)
+                reqdiv.style.left = reqw + "px";
+            if (h > reqh)
+                reqdiv.style.top = reqh + "px";
         }
         else if(e.type == "resize")
         {
