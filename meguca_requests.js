@@ -166,20 +166,19 @@
                 reqw = window.innerWidth - reqdiv.offsetWidth,
                 reqh = window.innerHeight - reqdiv.offsetHeight;
 
-            if (h > 0)
+            if (h > reqh)
+                reqdiv.style.top = reqh + "px";
+            else if (h > 0)
                 reqdiv.style.top = h + "px";
             else
                 reqdiv.style.top = "0px";
 
-            if (w > 0)
+            if (w > reqw)
+                reqdiv.style.left = reqw + "px";
+            else if (w > 0)
                 reqdiv.style.left = w + "px";
             else
                 reqdiv.style.left = "0px";
-
-            if (w > reqw)
-                reqdiv.style.left = reqw + "px";
-            if (h > reqh)
-                reqdiv.style.top = reqh + "px";
         }
         else if(e.type == "resize")
         {
@@ -215,6 +214,13 @@
 
         while (i < posts.length)
         {
+            // Don't go past incomplete posts as they might be in the middle of making a request
+            if (posts[i].classList.contains("editing"))
+            {
+                lastIndex = i;
+                break;
+            }
+
             var postText = posts[i].getElementsByTagName("blockquote")[0].innerText;
             var lines = postText.split('\n');
 
