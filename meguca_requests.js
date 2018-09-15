@@ -23,7 +23,6 @@
         magich,
         magicw,
         lastIndex = 1,
-        editPosts = [],
         postsRoot = document.getElementById("thread-container"),
         reqRE = new RegExp('/r/(.*)', 'i'),
         redditRE = new RegExp('reddit.com', 'i');
@@ -255,29 +254,12 @@
     function refreshRequestList()
     {
         let posts = postsRoot.children,
-            i = 0;
-
-        for ( ; i < editPosts.length; i++)
-        {
-            let post = posts[editPosts[i]];
-            if (!post.classList.contains("editing"))
-            {
-                editPosts.splice(i, 1);
-                checkForRequest(post);
-            }
-        }
-
-        i = lastIndex;
+            i = lastIndex;
 
         while (i < posts.length)
         {
-            // Store currently edited posts in an array to check again next update
             let post = posts[i];
-            if (post.classList.contains("editing"))
-                editPosts.push(i);
-
             checkForRequest(post);
-
             i++;
         }
 
