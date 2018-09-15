@@ -347,8 +347,6 @@
 
     function observerCallback(mutationsList, observer)
     {
-        console.log(mutationsList);
-
         for (let i = 0; i < mutationsList.length; i++)
         {
             let mut = mutationsList[i],
