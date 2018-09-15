@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Meguca Request Window
 // @namespace    KethRequest
-// @version      0.3
+// @version      0.4
 // @description  Show all requests that start with /r/
 // @author       Kethsar
 // @match        https://meguca.org/a/*
@@ -17,14 +17,16 @@
         reqhead = document.createElement("div"),
         reqbody = document.createElement("div"),
         closeBtn = document.createElement("button"),
-        refreshBtn = document.createElement("button"),
         reqbottom = document.createElement("div"),
         reqtable = document.createElement("table"),
         rtheadtable = document.createElement("table"),
         magich,
         magicw,
         lastIndex = 1,
-        editPosts = [];
+        editPosts = [],
+        postsRoot = document.getElementById("thread-container"),
+        reqRE = new RegExp('/r/(.*)', 'i'),
+        redditRE = new RegExp('reddit.com', 'i');
 
     function init()
     {
@@ -45,7 +47,6 @@
             "#reqhead { height: 15px; background-color: grey; padding: 2px; cursor: move; text-align: center; }\n" +
             "#reqbody { padding: 2px; overflow: auto; }\n" +
             "#closeBtn { float: right; font-weight: bold; }\n" +
-            "#refreshBtn { float: left; }\n" +
             ".reqBtn { height: 15px; background-color: darkgrey; border: none; cursor: pointer; }\n" +
             "#reqbottom { height: 4px; cursor: ns-resize; }\n" +
             "#reqtable { width: 100%; table-layout: fixed; }\n" +
@@ -70,11 +71,6 @@
         closeBtn.id = "closeBtn";
         closeBtn.classList.add("reqBtn");
 
-        refreshBtn.innerText = "Refresh";
-        refreshBtn.title = "Grab requests from posts made after the last refresh";
-        refreshBtn.id = "refreshBtn";
-        refreshBtn.classList.add("reqBtn");
-
         let rthead = document.createElement("tr"),
             th1 = document.createElement("th"),
             th2 = document.createElement("th"),
@@ -94,7 +90,6 @@
         rthead.append(th3);
         rtheadtable.append(rthead);
 
-        reqhead.append(refreshBtn);
         reqhead.append("Requests");
         reqhead.append(closeBtn);
         reqbody.append(reqtable);
@@ -146,7 +141,6 @@
         reqbottom.addEventListener("mousedown", reqbottomMouseDown);
 
         window.addEventListener("resize", resizeHandler);
-        refreshBtn.addEventListener("click", refreshRequestList);
         closeBtn.addEventListener("click", hideRequestsWindow);
     }
 
@@ -242,6 +236,9 @@
         reqdH = reqdiv.offsetHeight;
         reqbodyH = reqdH - topH - rtheadH;
         reqbody.style.height = reqbodyH + "px";
+
+        refreshRequestList();
+        createObserver();
     }
 
     function hideRequestsWindow()
@@ -257,7 +254,7 @@
 
     function refreshRequestList()
     {
-        let posts = document.getElementsByTagName("article"),
+        let posts = postsRoot.children,
             i = 0;
 
         for ( ; i < editPosts.length; i++)
@@ -277,9 +274,7 @@
             // Store currently edited posts in an array to check again next update
             let post = posts[i];
             if (post.classList.contains("editing"))
-            {
                 editPosts.push(i);
-            }
 
             checkForRequest(post);
 
@@ -291,10 +286,15 @@
 
     function checkForRequest(post)
     {
-        let reqRE = new RegExp('/r/(.*)', 'i'),
-            redditRE = new RegExp('reddit.com', 'i'),
-            postText = post.getElementsByTagName("blockquote")[0].innerText,
-            lines = postText.split('\n');
+        let bquote = post.getElementsByTagName("blockquote")[0],
+            postText = null,
+            lines = null;
+
+        if (!bquote)
+            return;
+
+        postText = bquote.innerText;
+        lines = postText.split('\n');
 
         for (let j = 0; j < lines.length; j++)
         {
@@ -330,6 +330,38 @@
         row.append(nocell);
         row.append(reqcell);
         reqtable.append(row);
+    }
+
+    function createObserver()
+    {
+        let obsConfig = {
+            attributeFilter: ["class"],
+            attributes: true,
+            subtree: true,
+            attributeOldValue: true },
+            observer = null;
+
+        observer = new MutationObserver(observerCallback);
+        observer.observe(postsRoot, obsConfig);
+    }
+
+    function observerCallback(mutationsList, observer)
+    {
+        console.log(mutationsList);
+
+        for (let i = 0; i < mutationsList.length; i++)
+        {
+            let mut = mutationsList[i],
+                target = mut.target;
+
+            if (target.localName == "article"
+                && mut.oldValue.includes("editing")
+                && !mut.oldValue.includes("reply-form")
+                && !target.classList.contains("editing"))
+            {
+                checkForRequest(target);
+            }
+        }
     }
 
     init();
