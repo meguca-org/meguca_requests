@@ -22,7 +22,7 @@
         rtheadtable = document.createElement("table"),
         magich,
         magicw,
-        lastIndex = 1,
+        refreshed = false,
         postsRoot = document.getElementById("thread-container"),
         reqRE = new RegExp('/r/(.*)', 'i'),
         redditRE = new RegExp('reddit.com', 'i');
@@ -253,8 +253,11 @@
 
     function refreshRequestList()
     {
+        if (refreshed)
+            return;
+
         let posts = postsRoot.children,
-            i = lastIndex;
+            i = 1;
 
         while (i < posts.length)
         {
@@ -263,7 +266,7 @@
             i++;
         }
 
-        lastIndex = i;
+        refreshed = true;
     }
 
     function checkForRequest(post)
@@ -320,10 +323,9 @@
             attributeFilter: ["class"],
             attributes: true,
             subtree: true,
-            attributeOldValue: true },
-            observer = null;
+            attributeOldValue: true };
 
-        observer = new MutationObserver(observerCallback);
+        let observer = new MutationObserver(observerCallback);
         observer.observe(postsRoot, obsConfig);
     }
 
