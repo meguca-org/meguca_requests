@@ -5,6 +5,8 @@
 // @description  Show all requests that start with /r/
 // @author       Kethsar
 // @match        https://meguca.org/a/*
+// @match        https://megu.ca/a/*
+// @match        https://shamik.ooo/a/*
 // @grant        none
 // ==/UserScript==
 
@@ -236,8 +238,11 @@
         reqbodyH = reqdH - topH - rtheadH;
         reqbody.style.height = reqbodyH + "px";
 
-        refreshRequestList();
-        createObserver();
+        if (!refreshed)
+        {
+            refreshRequestList();
+            createObserver();
+        }
     }
 
     function hideRequestsWindow()
@@ -323,7 +328,8 @@
             attributeFilter: ["class"],
             attributes: true,
             subtree: true,
-            attributeOldValue: true };
+            attributeOldValue: true
+        };
 
         let observer = new MutationObserver(observerCallback);
         observer.observe(postsRoot, obsConfig);
